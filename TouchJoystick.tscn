@@ -7,6 +7,7 @@ script/source = "extends Node2D
 export var dead_zone = 5; #joystick deadzone radius
 export var circle_pad_radius = 25; #radius of the circle pad
 export var outer_ring_radius = 70; #radius of the outer ring of the joystick
+export var touch_screen_only = false;
 
 onready var CirclePadHitbox = get_node(\"Circle Pad/Circle Pad Hitbox\"); #retrieve useful nodes
 onready var CirclePad = get_node(\"Circle Pad\");
@@ -22,12 +23,16 @@ signal _joystick_released; #called when the user released the joystick
 signal _joystick_axis_changed(value); #called when the axis is changed by user input
 
 func _draw():
-	draw_circle(Vector2(0,0), outer_ring_radius, Color(0,0,0)); #black circle shows outer ring
-	draw_circle(Vector2(0,0), dead_zone, Color(255, 0, 0)); #draw a red circle to show deadzone
+	if((touch_screen_only && OS.has_touchscreen_ui_hint()) || !touch_screen_only):
+		draw_circle(Vector2(0,0), outer_ring_radius, Color(0,0,0)); #black circle shows outer ring
+		draw_circle(Vector2(0,0), dead_zone, Color(255, 0, 0)); #draw a red circle to show deadzone
 
 func _ready():
 	CirclePadHitbox.shape.radius = circle_pad_radius; #set the user defined radii
 	OuterRingHitbox.shape.radius = outer_ring_radius;
+	
+	if(touch_screen_only && !OS.has_touchscreen_ui_hint()): #conceal the joystick if restricted to touchscreens
+		visible = false;
 
 func getStickPosition(): #returns vector scaled to return a vector between (-1, -1) and (1, 1)
 	if (abs(CirclePad.position.length()) > dead_zone):
@@ -69,8 +74,10 @@ func _on_Outer_Ring_input_event(viewport, event, shape_idx): #called when an inp
 
 script/source = "extends KinematicBody2D
 
+
 func _draw():
-	draw_circle(Vector2(0,0), get_node(\"Circle Pad Hitbox\").shape.radius, Color(255,255,255)); #draw a circle to represent circle pad"
+	if((get_node(\"..\").touch_screen_only && OS.has_touchscreen_ui_hint()) || !get_node(\"..\").touch_screen_only): #do not draw circle pad if touchscreen only
+		draw_circle(Vector2(0,0), get_node(\"Circle Pad Hitbox\").shape.radius, Color(255,255,255)); #draw a circle to represent circle pad"
 
 [sub_resource type="CircleShape2D" id=3]
 
@@ -82,7 +89,7 @@ radius = 25.0
 custom_solver_bias = 0.0
 radius = 70.0
 
-[node name="Touch Joystick" type="Node2D" index="0"]
+[node name="Touch Joystick" type="Node2D"]
 
 script = SubResource( 1 )
 _sections_unfolded = [ "Transform" ]
@@ -92,6 +99,7 @@ __meta__ = {
 dead_zone = 5
 circle_pad_radius = 25
 outer_ring_radius = 70
+touch_screen_only = false
 
 [node name="Circle Pad" type="KinematicBody2D" parent="." index="0"]
 
