@@ -15,3 +15,4 @@ if the circular pad is within the adjustable dead_zone it will defualt to return
 circle_pad_radius sets the radius of the circle pad itself
 dead_zone a circular area in the center of the joystcik in which input is ignored
 outer_ring_radius sets the size of the space in which the circle pad can move
+touch_screen_only can be set to block the joystick from displaying on devices that do not have a touchscreen or support emulation of one
